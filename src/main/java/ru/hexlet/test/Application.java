@@ -10,19 +10,31 @@ public class Application {
     public static void main(String[] args) throws SQLException {
         try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:hexlet-test")) {
 
-            String sql  = "CREATE TABLE users (id BIGINT PRIMARY KEY AUTO_INCREMENT, username VARCHAR(255), phone BIGINT)";
+            String sqlCreate  = "CREATE TABLE users (id BIGINT PRIMARY KEY AUTO_INCREMENT, username VARCHAR(255), phone BIGINT)";
             try (Statement statement = conn.createStatement()) {
-                statement.execute(sql);
+                statement.execute(sqlCreate);
             }
 
-            String sql2 = "INSERT INTO users (username, phone) VALUES ('tommy', '123456789'), ('tommy2', '123456789'), ('tommy3', '123456789')";
-            try (Statement statement2 = conn.createStatement()) {
-                statement2.executeUpdate(sql2);
+            String sqlInsert = "INSERT INTO users (username, phone) VALUES (?, ?)";
+            try (var preparedStatement = conn.prepareStatement(sqlInsert)) {
+                preparedStatement.setString(1, "Tommy");
+                preparedStatement.setString(2, "88005553535");
+                preparedStatement.executeUpdate();
+
+                preparedStatement.setString(1, "Johny");
+                preparedStatement.setString(2, "8080808080");
+                preparedStatement.executeUpdate();
             }
 
-            String sql3 = "SELECT * FROM users";
+            String sqlDelete = "DELETE FROM users WHERE username = ?";
+            try (var preparedStatement = conn.prepareStatement(sqlDelete)) {
+                preparedStatement.setString(1, "Tommy");
+                preparedStatement.executeUpdate();
+            }
+
+            String sqlSelect = "SELECT * FROM users";
             try (Statement statement3 = conn.createStatement()) {
-                ResultSet resultSet = statement3.executeQuery(sql3);
+                ResultSet resultSet = statement3.executeQuery(sqlSelect);
                 while (resultSet.next()) {
                     System.out.println(resultSet.getString("username"));
                     System.out.println(resultSet.getString("phone"));
