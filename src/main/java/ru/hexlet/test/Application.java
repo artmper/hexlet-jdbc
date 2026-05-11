@@ -10,35 +10,23 @@ public class Application {
     public static void main(String[] args) throws SQLException {
         try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:hexlet-test")) {
 
-            String sqlCreate  = "CREATE TABLE users (id BIGINT PRIMARY KEY AUTO_INCREMENT, username VARCHAR(255), phone BIGINT)";
+            String sqlCreate  = "CREATE TABLE users (id BIGINT PRIMARY KEY AUTO_INCREMENT, username VARCHAR(255), phone VARCHAR(20))";
             try (Statement statement = conn.createStatement()) {
                 statement.execute(sqlCreate);
             }
 
-            String sqlInsert = "INSERT INTO users (username, phone) VALUES (?, ?)";
-            try (var preparedStatement = conn.prepareStatement(sqlInsert)) {
-                preparedStatement.setString(1, "Tommy");
-                preparedStatement.setString(2, "88005553535");
-                preparedStatement.executeUpdate();
+            User user1 = new User("Tommy", "+4873573547");
+            User user2 = new User("John", "+7386738654");
 
-                preparedStatement.setString(1, "Johny");
-                preparedStatement.setString(2, "8080808080");
-                preparedStatement.executeUpdate();
-            }
+            var dao = new UserDAO(conn);
+            dao.save(user1);
+            dao.save(user2);
+            dao.delete(user1);
+            user2.setName("Bob");
+            dao.save(user2);
 
-            String sqlDelete = "DELETE FROM users WHERE username = ?";
-            try (var preparedStatement = conn.prepareStatement(sqlDelete)) {
-                preparedStatement.setString(1, "Tommy");
-                preparedStatement.executeUpdate();
-            }
-
-            String sqlSelect = "SELECT * FROM users";
-            try (Statement statement3 = conn.createStatement()) {
-                ResultSet resultSet = statement3.executeQuery(sqlSelect);
-                while (resultSet.next()) {
-                    System.out.println(resultSet.getString("username"));
-                    System.out.println(resultSet.getString("phone"));
-                }
+            for (var user : dao.findAll()) {
+                System.out.println(user.getName() + ", " + user.getPhone());
             }
         }
     }
